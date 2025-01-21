@@ -1,0 +1,38 @@
+#!/bin/bash
+
+QEMU="/home/karim/dax-qemu/build/qemu-system-x86_64"
+
+KPATH="/tmp/linux/akpm"
+VMLINUX="$KPATH/vmlinux"
+
+VM="vm$1"
+SMP=8
+
+TAP="tap$1"
+MACS=("54:54:00:00:73:44" "54:54:00:00:73:48")
+
+kcmdline=(
+		"root=/dev/vda rw"
+		"console=ttyS0"
+		"earlyprintk=ttyS0"
+	)
+
+MEMFILE="/dev/huge-1g/memory-file-$VM"
+
+$QEMU \
+	-enable-kvm \
+	-cpu host \
+	-smp 8 \
+	-m 32G \
+	-object memory-backend-file,id=mem0,mem-path=$MEMFILE,size=32G,share=on \
+	-numa node,memdev=mem0 \
+	-kernel $VMLINUX \
+	-append "${kcmdline[*]}" \
+	-drive format=raw,file="images/$VM.img",if=virtio \
+	-netdev tap,id=mynet1,vhost=on,queues="$SMP",ifname="$TAP",script=no,downscript=no \
+	-device virtio-net,netdev=mynet1,mq=on,vectors="$SMP",mac="${MACS[$1]}" \
+	-chardev socket,id=char0,path=/tmp/"$VM.sock" \
+	-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=daxfs \
+	-display none \
+	-serial pty \
+	-daemonize 2>logs/qemu_log

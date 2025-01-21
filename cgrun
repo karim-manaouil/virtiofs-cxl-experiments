@@ -1,0 +1,9 @@
+#!/bin/bash
+
+CG="$1"
+shift 1
+CMD="$@"
+
+
+echo $$ > "$CG/cgroup.procs"
+$CMD

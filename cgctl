@@ -1,0 +1,54 @@
+#!/bin/bash
+
+CGROOT="/sys/fs/cgroup"
+
+VIRTIOCG="$CGROOT/virtiofsd"
+VMCG="$CGROOT/virtual-vm$1"
+
+# This is from numactl -H on seksu
+# The last entry in NODES is the CXL NUMA NODE
+# The last entry in CPUS is CPUs from NUMA node 3
+# The first two entires are used for VM0 and VM1
+# The last entry is used for controlling virtiofsd
+# Delete cgroup directories whenever you change this topology
+# sudo rmdir /sys/fs/cgroup/virt*
+
+NODES=("1" "2" "3")
+CPUS=("12-23" "24-35" "36-47")
+
+if [[ "$1" == "rm" ]]; then
+	rmdir /sys/fs/cgroup/virt*
+	exit 0
+fi
+
+if [[ ! -d "$VMCG" ]]; then
+	mkdir $VMCG
+	echo "Created cgroup $VMCG"
+	echo "${CPUS[$1]}"  > "$VMCG/cpuset.cpus"
+	echo "${NODES[$1]}" > "$VMCG/cpuset.mems"
+fi
+
+if [[ ! -d "$VIRTIOCG" ]]; then
+	mkdir $VIRTIOCG
+	echo "Created cgroup $VIRTIOCG"
+	echo "${CPUS[2]}"  > "$VIRTIOCG/cpuset.cpus"
+	echo "${NODES[2]}" > "$VIRTIOCG/cpuset.mems"
+fi
+
+
+trap ctrl_c INT
+
+function ctrl_c() {
+	pkill virtiofsd
+	pkill qemu-system-x86
+}
+
+./cgrun "$VIRTIOCG" ./virtiofsd $1 &
+virtio_pid="$!"
+
+sleep 0.1
+
+./cgrun "$VMCG" ./qemuctl $1 &
+qemu_pid="$!"
+
+sleep 1

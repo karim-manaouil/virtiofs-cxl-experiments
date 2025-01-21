@@ -1,0 +1,16 @@
+#!/bin/bash
+
+VM="vm$1"
+
+VIRTIOFSD="/home/karim/dax-qemu/build/tools/virtiofsd/virtiofsd"
+
+$VIRTIOFSD \
+	--daemonize \
+	--socket-path=/tmp/$VM.sock \
+	-o source=/srv/dax \
+	-o cache=none \
+	-o allow_direct_io \
+	-o allow_root \
+	--thread-pool-size=2 \
+	2>logs/virtiofsd_log
+
