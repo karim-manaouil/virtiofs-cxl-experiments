@@ -1,0 +1,35 @@
+#!/bin/bash
+
+DIR="/srv/dax"
+MAX_JOBS=8
+SIZE="1K" # 1G in 1M blocks, for dd
+MAX_FILE=7
+NODE=4
+
+
+if [ "$1" = "create" ]; then
+	echo "Caching on node $NODE"
+	for j in `seq 0 $MAX_JOBS`; do
+		for f in `seq 0 $MAX_FILE`; do
+			file="$DIR/job8-8-4k-1g.$j.$f"
+			rm -rf $file
+			fallocate -l "$SIZE" "$file"
+			numactl -m $NODE dd if=/dev/random of="$file" bs=1M count="$SIZE" &
+			echo "File $file of size $SIZE""x""1M"
+		done
+	done
+elif [ "$1" = "touch" ]; then
+	NODE=${2:-$NODE}
+	echo 3 > /proc/sys/vm/drop_caches
+	echo "Caching on node $NODE"
+	for j in `seq 0 $MAX_JOBS`; do
+		for f in `seq 0 $MAX_FILE`; do
+			file="$DIR/job8-8-4k-1g.$j.$f"
+			numactl -m $NODE dd if=$file of=/dev/null bs=1M &
+		done
+	done
+else
+	echo "Nothing to do!"
+fi
+
+wait
