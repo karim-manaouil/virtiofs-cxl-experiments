@@ -1,3 +1,10 @@
+# Directory Structure
+- `cgctl` is the control script which binds cpuset.mem and cpuset.cpus of `virtiofsd` and `qemu` to the right nodes. Please, check the script for configuration.
+- `virtiofsd` and `qemuctl` contains virtiofsd and qemu commands with their arguments.
+- `filectl` is used to control file creation and distribution according to hot/cold ratios
+- `fio` contains fio host files, job files, source code and binaries. `fio/current` is a soft link to the current job file.
+- `stats.py` is used to gather `/sys/fs/cgroup/memory.numa_stats` from the host, as well as the guest to compare file cache statistics, evolutions, etc.
+
 # Preparation
 ---
 ## Dependency
