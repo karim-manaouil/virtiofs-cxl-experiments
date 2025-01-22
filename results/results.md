@@ -27,9 +27,13 @@ NB: no invalidation or drop_cache between the runs
 - The job file used is https://github.com/karim-manaouil/virtiofs-cxl-experiments/blob/main/fio/jobs/job8-8-4k-1g.fio
 - In short, it creates 8 jobs, each accessing 8x1G files (64G in total). 
 
-- The files are created with `filectl` and distributed across CXL/DRAM with x1.5/x0.5 ratios.
+- The files are created with `filectl` and distributed across DRAM/CXL
+    - Up until experiment 4, everything goes to DRAM, as CXL is not yet introduced.
+    - Starting from experiment 5, CXL is introduced and file are distributed with x1.5/x0.5 DRAM/CXL (hot/cold) ratios.
 
 - Guest caching knob is controlled from `virtiofsd` with `-o cache` option.
+
+- fio accesses the files following a zipfian distribution.
 ## Experiment 1)
 ---
 2 VMs, each one reading the same file over virtiofs, cache=None, O_DIRECT (no host no guest)
