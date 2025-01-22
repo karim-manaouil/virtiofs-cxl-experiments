@@ -8,6 +8,11 @@
 #
 # Copyright (C) 2025 Karim Manaouil
 #
+
+# numactl --version=2.0.19 must used for --weighted-interleave
+# Please git clone numactl and build it for this to work.
+NUMACTL="./numactl/build/numactl"
+
 DIR="/srv/dax"
 MAX_JOBS=7
 SIZE="1K"	# 1G in 1M blocks, for dd
@@ -15,6 +20,8 @@ MAX_FILES=7
 DRAM_NODE=3	# Same as virtiofsd's cpuset.mem
 CXL_NODE=4
 GUEST_RAM=32
+COLD_RATIO=0
+HOT_RATIO=2
 
 nr_files=$(((MAX_JOBS + 1) * (MAX_FILES + 1)))
 
@@ -33,19 +40,20 @@ shuffled_files=($(shuf -e "${all_files[@]}"))
 
 # We take x1.5 hot and x0.5 cold randomly
 # Files are 1G.
-nr_cold_files=$(python3 -c "print(int($GUEST_RAM * 0.5))")
+nr_cold_files=$(python3 -c "print(int($GUEST_RAM * $COLD_RATIO))")
 
 echo "Number of cold files: $nr_cold_files"
 
 if [ "$1" = "create" ]; then
 	for f in `seq 0 $(($nr_files - 1))`; do
-		if [ $f -le $nr_cold_files ]; then
+		if [ $f -lt $nr_cold_files ]; then
 			NODE=$CXL_NODE
 		else
 			NODE=$DRAM_NODE
 		fi
 		file="$DIR/job8-8-4k-1g.${shuffled_files[$f]}"
-		numactl -m $NODE dd if=/dev/random of="$file" bs=1M count="$SIZE" > /dev/null 2>&1 &
+		$NUMACTL --weighted-interleave="$DRAM_NODE,$CXL_NODE" \
+			dd if=/dev/random of="$file" bs=1M count="$SIZE" > /dev/null 2>&1 &
 		echo "File $file of size $SIZE""x""1M on NUMA node $NODE"
 		# 8 I/O threads at a time
 		if (( $f % 8 == 0 )); then
@@ -53,15 +61,12 @@ if [ "$1" = "create" ]; then
 		fi
 	done
 elif [ "$1" = "touch" ]; then
-		echo 3 > /proc/sys/vm/drop_caches
-		for f in `seq 0 $(($nr_files - 1))`; do
-		if [ $f -le $nr_cold_files ]; then
-			NODE=$CXL_NODE
-		else
-			NODE=$DRAM_NODE
-		fi
+	echo 3 > /proc/sys/vm/drop_caches
+	for f in `seq 0 $(($nr_files - 1))`; do
 		file="$DIR/job8-8-4k-1g.${shuffled_files[$f]}"
-		numactl -m $NODE dd if="$file" of=/dev/null bs=1M count="$SIZE" > /dev/null 2>&1 &
+		echo "File $file of size $SIZE""x""1M on NUMA node $NODE"
+		$NUMACTL --weighted-interleave="$DRAM_NODE,$CXL_NODE" \
+			dd if="$file" of=/dev/null bs=1M count="$SIZE" > /dev/null 2>&1 &
 		# 8 I/O threads at a time
 		if (( $f % 8 == 0 )); then
 			wait;
@@ -70,3 +75,5 @@ elif [ "$1" = "touch" ]; then
 else
 	echo "Nothing to do!"
 fi
+
+wait
