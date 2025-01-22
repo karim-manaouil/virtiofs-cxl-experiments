@@ -39,3 +39,19 @@ NB: no invalidation or drop_cache between the runs
 | Throughput (MB/s) | 72.4 | 72.5 |
 
 ![](exp1.png)
+
+## Experiment 2)
+---
+2 VMs, each one reading the same file over virtiofs, cache=Always, (just guest no host)
+
+NEED TO TALK TO SHAI ABOUT (just guest no host)
+
+## Experiment 3)
+---
+2 VMs, each one reading the same file over virtiofs, cache=Always, (Guest and host)
+
+| VM                | VM0 | VM1 |
+| ----------------- | --- | --- |
+| Throughput (MB/s) | 221 | 221 |
+
+![](exp3.png)
