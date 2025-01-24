@@ -37,24 +37,19 @@ NB: no invalidation or drop_cache between the runs
 - fio accesses the files following a zipfian distribution.
 ## Experiment 1)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=None, O_DIRECT (host-cache=false guest-cache=false, direct IO)
+2 VMs, each one reading the same file over virtiofs
+- 64G zipf
+- Host caching: no
+- Guest caching: no
+- Cache: none (O_DIRECT)
 
-| VM    | VM0      | VM1      |
-| ----- | -------- | -------- |
-| run 1 | 1565MB/s | 1565MB/s |
-| run 2 | 1734MB/s | 1734MB/s |
-
-![](exp1.png)
-
-## Experiment 2)
----
-2 VMs, each one reading the same file over virtiofs, cache=Always, (just guest no host)
-
-NEED TO TALK TO SHAI ABOUT (just guest no host)
-
+| First touch  | 3.4GB/s |
+| ------------ | ------- |
+| Second touch | 2.1GB/s |
+| Third touch  | 2.6GB/s |
 ## Experiment 3)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=Always, (host-cache=true and guest-cache=true)
+2 VMs, each one reading the same file over virtiofs
 - 64G zipf
 - Host caching: yes
 - Guest caching: yes
@@ -65,7 +60,7 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 | Second touch | 130GB/s |
 ## DAX (experiments >=4)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=Always, (host-cache=true, guest-cache=DAX)
+2 VMs, each one reading the same file over virtiofs
 - 64G zipf
 - Host caching: yes
 - Guest caching: no (DAX)
@@ -79,6 +74,7 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 | First touch  | 17.4GB/s | 21.9GB/s | 35.5GB/s | 59.9GB/s | 82.2GB/s | 101GB/s | 107GB/s | 110GB/s |
 | Second touch | 17.4GB/s | 22.1GB/s | 35.7GB/s | 60GB/s   | 83.9GB/s | 104GB/s | 110GB/s | 113GB/s |
 
+![](ratio_throughput.png)
 # Refs
 ---
 [1] https://github.com/karim-manaouil/virtiofs-cxl-experiments/tree/main/patches
