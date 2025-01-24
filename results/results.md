@@ -21,6 +21,13 @@
 
 NB: no invalidation or drop_cache between the runs
 
+on NVME
+
+| Run (GB/s)   | First run | Second run | Third run | Fourth run | Fifth run | file cache size at end of tests |
+| ------------ | --------- | ---------- | --------- | ---------- | --------- | ------------------------------- |
+| cache=none   | 9.5       | 10.2       | 9.7       | 9.5        | 9.7       | 133MiB                          |
+| cache=always | 62.4      | 65.2       | 68.4      | 69.7       | 69.4      | 8GB                             |
+
 # Paper Experiments
 ---
 - Each experiment has a throughput table and includes a graph of the evolution of the amount of file pages `file` on the host (`virtiofsd`) and the two guests (`vm0` and `vm1`) 
