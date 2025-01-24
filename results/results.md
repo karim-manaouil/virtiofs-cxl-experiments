@@ -60,13 +60,9 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 - Guest caching: yes
 - Cache: 100% DRAM
 
-| VM    | VM0      | VM1      |
-| ----- | -------- | -------- |
-| run 1 | 38.2GB/s | 38.2GB/s |
-| run 2 | 39.1GB/s | 39.1GB/s |
-
-![](exp3.png)
-
+| First touch  | 126GB/s |
+| ------------ | ------- |
+| Second touch | 130GB/s |
 ## DAX (experiments >=4)
 ---
 2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
@@ -78,12 +74,10 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 - I show aggregate (vm0+vm1) throughput (per VM is always aggregate divided by two)
 - This requires a kernel modification. Our patches can be found at [1] for akpm's Linux kernel v6.13-rc6 mm-stable branch.
 
-| CXL Ratio | 100%     | 80%      | 50%      | 30%      | 20%      | 10%     | 5%      | 0%      |
-| --------- | -------- | -------- | -------- | -------- | -------- | ------- | ------- | ------- |
-| run 1     | 17.4GB/s | 21.9GB/s | 35.5GB/s | 59.9GB/s | 82.2GB/s | 101GB/s | 107GB/s | 110GB/s |
-| run 2     | 17.4GB/s | 22.1GB/s | 35.7GB/s | 60GB/s   | 83.9GB/s | 104GB/s | 110GB/s | 113GB/s |
-
-![](ratio_throughput.png)
+| CXL Ratio    | 100%     | 80%      | 50%      | 30%      | 20%      | 10%     | 5%      | 0%      |
+| ------------ | -------- | -------- | -------- | -------- | -------- | ------- | ------- | ------- |
+| First touch  | 17.4GB/s | 21.9GB/s | 35.5GB/s | 59.9GB/s | 82.2GB/s | 101GB/s | 107GB/s | 110GB/s |
+| Second touch | 17.4GB/s | 22.1GB/s | 35.7GB/s | 60GB/s   | 83.9GB/s | 104GB/s | 110GB/s | 113GB/s |
 
 # Refs
 ---
