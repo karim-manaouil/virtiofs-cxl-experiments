@@ -37,7 +37,7 @@ NB: no invalidation or drop_cache between the runs
 - fio accesses the files following a zipfian distribution.
 ## Experiment 1)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=None, O_DIRECT (no host no guest)
+2 VMs, each one reading the same file over virtiofs, cache=None, O_DIRECT (host-cache=false guest-cache=false, direct IO)
 
 | VM    | VM0      | VM1      |
 | ----- | -------- | -------- |
@@ -54,7 +54,7 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 
 ## Experiment 3)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=Always, (Guest and host)
+2 VMs, each one reading the same file over virtiofs, cache=Always, (host-cache=true and guest-cache=true)
 - 64G zipf
 - Host caching: yes
 - Guest caching: yes
@@ -65,10 +65,10 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 | Second touch | 130GB/s |
 ## DAX (experiments >=4)
 ---
-2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
+2 VMs, each one reading the same file over virtiofs, cache=Always, (host-cache=true, guest-cache=DAX)
 - 64G zipf
-- Host caching: no (DAX)
-- Guest caching: yes 
+- Host caching: yes
+- Guest caching: no (DAX)
 - Cache: CXL + DRAM with ratios
 
 - I show aggregate (vm0+vm1) throughput (per VM is always aggregate divided by two)
