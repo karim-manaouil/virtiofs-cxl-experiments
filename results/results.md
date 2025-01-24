@@ -12,6 +12,7 @@
 - Autonuma: off
 - cpufreq: performance
 - hugepages: 1G
+****
 
 | Run          | First run | Second run | Third run | Fourth run | file cache size at end of tests |
 | ------------ | --------- | ---------- | --------- | ---------- | ------------------------------- |
@@ -38,9 +39,10 @@ NB: no invalidation or drop_cache between the runs
 ---
 2 VMs, each one reading the same file over virtiofs, cache=None, O_DIRECT (no host no guest)
 
-| VM                | VM0  | VM1  |
-| ----------------- | ---- | ---- |
-| Throughput (MB/s) | 72.4 | 72.5 |
+| VM    | VM0      | VM1      |
+| ----- | -------- | -------- |
+| run 1 | 1565MB/s | 1565MB/s |
+| run 2 | 1734MB/s | 1734MB/s |
 
 ![](exp1.png)
 
@@ -53,9 +55,51 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 ## Experiment 3)
 ---
 2 VMs, each one reading the same file over virtiofs, cache=Always, (Guest and host)
+- 64G zipf
+- Host caching: yes
+- Guest caching: yes
+- Cache: 100% DRAM
 
-| VM                | VM0 | VM1 |
-| ----------------- | --- | --- |
-| Throughput (MB/s) | 221 | 221 |
+| VM    | VM0      | VM1      |
+| ----- | -------- | -------- |
+| run 1 | 38.2GB/s | 38.2GB/s |
+| run 2 | 39.1GB/s | 39.1GB/s |
 
 ![](exp3.png)
+
+## Experiment 4) DAX on 100% DRAM
+---
+2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
+- 64G zipf
+- Host caching: no (DAX)
+- Guest caching: yes 
+- Cache: 100% DRAM
+
+| VM    | VM0      | VM1      |
+| ----- | -------- | -------- |
+| run 1 | 44.4GB/s | 44.4GB/s |
+| run 2 | 45.3GB/s | 45.3GB/s |
+
+![](exp4.png)
+
+## Experiment 5): DAX on 100% CXL
+---
+2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
+- 64G zipf
+- Host caching: no (DAX)
+- Guest caching: yes 
+- Cache: 100% CXL (max bandwidth 17.5GB/s)
+
+| VM    | VM0     | VM1     |
+| ----- | ------- | ------- |
+| run 1 | 8.7GB/s | 8.7GB/s |
+| run 2 | 8.7GB/s | 8.7GB/s |
+
+## Experiment 6):
+---
+Same as before, but with different CXL ratios
+
+| CXL Ratio | 100% | 80% | 50% | 30% | 20% | 10% | 5%  |
+| --------- | ---- | --- | --- | --- | --- | --- | --- |
+| run 1     |      |     |     |     |     |     |     |
+| run 2     |      |     |     |     |     |     |     |
