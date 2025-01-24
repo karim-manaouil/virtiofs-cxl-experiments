@@ -67,39 +67,24 @@ NEED TO TALK TO SHAI ABOUT (just guest no host)
 
 ![](exp3.png)
 
-## Experiment 4) DAX on 100% DRAM
+## DAX (experiments >=4)
 ---
 2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
 - 64G zipf
 - Host caching: no (DAX)
 - Guest caching: yes 
-- Cache: 100% DRAM
+- Cache: CXL + DRAM with ratios
 
-| VM    | VM0      | VM1      |
-| ----- | -------- | -------- |
-| run 1 | 44.4GB/s | 44.4GB/s |
-| run 2 | 45.3GB/s | 45.3GB/s |
+- I show aggregate (vm0+vm1) throughput (per VM is always aggregate divided by two)
+- This requires a kernel modification. Our patches can be found at [1] for akpm's Linux kernel v6.13-rc6 mm-stable branch.
 
-![](exp4.png)
+| CXL Ratio | 100%     | 80%      | 50%      | 30%      | 20%      | 10%     | 5%      | 0%      |
+| --------- | -------- | -------- | -------- | -------- | -------- | ------- | ------- | ------- |
+| run 1     | 17.4GB/s | 21.9GB/s | 35.5GB/s | 59.9GB/s | 82.2GB/s | 101GB/s | 107GB/s | 110GB/s |
+| run 2     | 17.4GB/s | 22.1GB/s | 35.7GB/s | 60GB/s   | 83.9GB/s | 104GB/s | 110GB/s | 113GB/s |
 
-## Experiment 5): DAX on 100% CXL
+![](ratio_throughput.png)
+
+# Refs
 ---
-2 VMs, each one reading the same file over virtiofs, cache=Always, DAX
-- 64G zipf
-- Host caching: no (DAX)
-- Guest caching: yes 
-- Cache: 100% CXL (max bandwidth 17.5GB/s)
-
-| VM    | VM0     | VM1     |
-| ----- | ------- | ------- |
-| run 1 | 8.7GB/s | 8.7GB/s |
-| run 2 | 8.7GB/s | 8.7GB/s |
-
-## Experiment 6):
----
-Same as before, but with different CXL ratios
-
-| CXL Ratio | 100% | 80% | 50% | 30% | 20% | 10% | 5%  |
-| --------- | ---- | --- | --- | --- | --- | --- | --- |
-| run 1     |      |     |     |     |     |     |     |
-| run 2     |      |     |     |     |     |     |     |
+[1] https://github.com/karim-manaouil/virtiofs-cxl-experiments/tree/main/patches
