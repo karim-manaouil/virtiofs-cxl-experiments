@@ -1,0 +1,12 @@
+#!/bin/bash
+
+CXL=$1
+DRAM=$((100 - $1))
+
+echo 3 > /proc/sys/vm/drop_caches
+
+echo $DRAM > /sys/kernel/mm/mempolicy/weighted_interleave/node3
+echo $CXL > /sys/kernel/mm/mempolicy/weighted_interleave/node4
+
+cat /sys/kernel/mm/mempolicy/weighted_interleave/node3
+cat /sys/kernel/mm/mempolicy/weighted_interleave/node4
