@@ -1,0 +1,74 @@
+From 11bd70dabf7df03d1b29f04398b0bf092ba4f66e Mon Sep 17 00:00:00 2001
+From: Karim Manaouil <kmanaouil.dev@gmail.com>
+Date: Fri, 24 Jan 2025 00:08:06 +0000
+Subject: [PATCH] mm/mempolicy: implement file weighted interleave
+
+---
+ mm/filemap.c   | 23 +++++++++++++++++++++++
+ mm/mempolicy.c |  3 +++
+ 2 files changed, 26 insertions(+)
+
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 5488bf089865..f2667a29f022 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -47,6 +47,7 @@
+ #include <linux/splice.h>
+ #include <linux/rcupdate_wait.h>
+ #include <linux/sched/mm.h>
++#include <linux/namei.h>	/* For kern_path() */
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
+ #include "internal.h"
+@@ -124,12 +125,34 @@
+  *    ->private_lock		(zap_pte_range->block_dirty_folio)
+  */
+ 
++char dax_user_path[1024];
++struct super_block *dax_sb;
++
+ static void enter_file_interleave(struct file *file)
+ {
++	struct path dax_path;
++	struct super_block *dax_sb;
++	struct super_block *file_sb = file->f_path.dentry->d_sb;
++	int err;
++
++	if (!file || dax_user_path[0] != '/')
++		return;
++
++	if (!dax_sb) {
++		err = kern_path(dax_user_path, LOOKUP_FOLLOW, &dax_path);
++		if (err)
++			return;
++		dax_sb = dax_path.dentry->d_sb;
++		path_put(&dax_path);
++	}
++
++	if (file_sb == dax_sb)
++		current->file_interleave = true;
+ }
+ 
+ static inline void exit_file_interleave(struct file *file)
+ {
++	current->file_interleave = false;
+ }
+ 
+ static void page_cache_delete(struct address_space *mapping,
+diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+index e7c440256733..8cc12d381a82 100644
+--- a/mm/mempolicy.c
++++ b/mm/mempolicy.c
+@@ -2338,6 +2338,9 @@ struct page *alloc_frozen_pages_noprof(gfp_t gfp, unsigned order)
+ 	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
+ 		pol = get_task_policy(current);
+ 
++	if (pol->mode == MPOL_WEIGHTED_INTERLEAVE && !current->file_interleave)
++			pol = &default_policy;
++
+ 	return alloc_pages_mpol(gfp, order, pol, NO_INTERLEAVE_INDEX,
+ 				       numa_node_id());
+ }
+-- 
+2.39.5
+

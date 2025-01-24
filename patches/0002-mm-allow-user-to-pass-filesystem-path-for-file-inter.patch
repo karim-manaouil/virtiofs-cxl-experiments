@@ -1,0 +1,92 @@
+From d53d8c180845d205ba96a7975ec613758af4102a Mon Sep 17 00:00:00 2001
+From: Karim Manaouil <kmanaouil.dev@gmail.com>
+Date: Fri, 24 Jan 2025 00:06:37 +0000
+Subject: [PATCH] mm: allow user to pass filesystem path for file interleave
+
+---
+ include/linux/mempolicy.h |  2 ++
+ mm/mempolicy.c            | 48 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
+
+diff --git a/include/linux/mempolicy.h b/include/linux/mempolicy.h
+index ce9885e0178a..9a659c57031d 100644
+--- a/include/linux/mempolicy.h
++++ b/include/linux/mempolicy.h
+@@ -17,6 +17,8 @@
+ 
+ struct mm_struct;
+ 
++extern char dax_user_path[1024];
++
+ #define NO_INTERLEAVE_INDEX (-1UL)	/* use task il_prev for interleaving */
+ 
+ #ifdef CONFIG_NUMA
+diff --git a/mm/mempolicy.c b/mm/mempolicy.c
+index bbaadbeeb291..e7c440256733 100644
+--- a/mm/mempolicy.c
++++ b/mm/mempolicy.c
+@@ -3489,6 +3489,48 @@ static int add_weight_node(int nid, struct kobject *wi_kobj)
+ 	return 0;
+ }
+ 
++static ssize_t ifs_show(struct kobject *kobj, struct kobj_attribute *attr,
++			 char *buf)
++{
++
++	return sysfs_emit(buf, "%s", dax_user_path);
++}
++
++static ssize_t ifs_store(struct kobject *kobj, struct kobj_attribute *attr,
++			  const char *buf, size_t count)
++{
++	char *end = strchr(buf, '\n');
++
++	if (end)
++		*end = 0;
++
++	memcpy(dax_user_path, buf, count);
++
++	return count;
++}
++
++static int add_file_interleave_kobj(struct kobject *wi_kobj)
++{
++	struct kobj_attribute *kobj_attr;
++
++	kobj_attr = kzalloc(sizeof(*kobj_attr), GFP_KERNEL);
++	if (!kobj_attr)
++		return -ENOMEM;
++
++	sysfs_attr_init(&kobj_attr->attr);
++	kobj_attr->attr.name = "interleave_fs";
++	kobj_attr->attr.mode = 0644;
++	kobj_attr->show = ifs_show;
++	kobj_attr->store = ifs_store;
++
++	if (sysfs_create_file(wi_kobj, &kobj_attr->attr)) {
++		kfree(kobj_attr);
++		pr_err("failed to add attribute interleave_fs\n");
++		return -ENOMEM;
++	}
++	return 0;
++}
++
+ static int add_weighted_interleave_group(struct kobject *root_kobj)
+ {
+ 	struct kobject *wi_kobj;
+@@ -3505,6 +3547,12 @@ static int add_weighted_interleave_group(struct kobject *root_kobj)
+ 		return err;
+ 	}
+ 
++	err = add_file_interleave_kobj(wi_kobj);
++	if (err) {
++		kobject_put(wi_kobj);
++		return err;
++	}
++
+ 	for_each_node_state(nid, N_POSSIBLE) {
+ 		err = add_weight_node(nid, wi_kobj);
+ 		if (err) {
+-- 
+2.39.5
+

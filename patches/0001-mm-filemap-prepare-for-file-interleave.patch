@@ -1,0 +1,123 @@
+From 4b56119753105f0f8ceb884a3349a030f369404f Mon Sep 17 00:00:00 2001
+From: Karim Manaouil <kmanaouil.dev@gmail.com>
+Date: Fri, 24 Jan 2025 00:05:18 +0000
+Subject: [PATCH] mm/filemap: prepare for file interleave
+
+---
+ include/linux/sched.h |  2 ++
+ kernel/fork.c         |  1 +
+ mm/filemap.c          | 28 ++++++++++++++++++++++------
+ 3 files changed, 25 insertions(+), 6 deletions(-)
+
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 64934e0830af..6a8d447b8ed7 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -1603,6 +1603,8 @@ struct task_struct {
+ 	struct user_event_mm		*user_event_mm;
+ #endif
+ 
++	bool				file_interleave;
++
+ 	/*
+ 	 * New fields for task_struct should be added above here, so that
+ 	 * they are included in the randomized portion of task_struct.
+diff --git a/kernel/fork.c b/kernel/fork.c
+index ded49f18cd95..d2fba8b9d07d 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1195,6 +1195,7 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
+ 	tsk->mm_cid_active = 0;
+ 	tsk->migrate_from_cpu = -1;
+ #endif
++	tsk->file_interleave = false;
+ 	return tsk;
+ 
+ free_stack:
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 279959cf9300..5488bf089865 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -124,6 +124,14 @@
+  *    ->private_lock		(zap_pte_range->block_dirty_folio)
+  */
+ 
++static void enter_file_interleave(struct file *file)
++{
++}
++
++static inline void exit_file_interleave(struct file *file)
++{
++}
++
+ static void page_cache_delete(struct address_space *mapping,
+ 				   struct folio *folio, void *shadow)
+ {
+@@ -3365,6 +3373,7 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 
+ 	trace_mm_filemap_fault(mapping, index);
+ 
++	enter_file_interleave(file);
+ 	/*
+ 	 * Do we have something in the page cache already?
+ 	 */
+@@ -3383,7 +3392,7 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 	} else {
+ 		ret = filemap_fault_recheck_pte_none(vmf);
+ 		if (unlikely(ret))
+-			return ret;
++			goto out_ret;
+ 
+ 		/* No page in the page cache at all */
+ 		count_vm_event(PGMAJFAULT);
+@@ -3406,7 +3415,8 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 			if (fpin)
+ 				goto out_retry;
+ 			filemap_invalidate_unlock_shared(mapping);
+-			return VM_FAULT_OOM;
++			ret = VM_FAULT_OOM;
++			goto out_ret;
+ 		}
+ 	}
+ 
+@@ -3467,11 +3477,13 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 	if (unlikely(index >= max_idx)) {
+ 		folio_unlock(folio);
+ 		folio_put(folio);
+-		return VM_FAULT_SIGBUS;
++		ret = VM_FAULT_SIGBUS;
++		goto out_ret;
+ 	}
+ 
+ 	vmf->page = folio_file_page(folio, index);
+-	return ret | VM_FAULT_LOCKED;
++	ret |= VM_FAULT_LOCKED;
++	goto out_ret;
+ 
+ page_not_uptodate:
+ 	/*
+@@ -3490,7 +3502,8 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 		goto retry_find;
+ 	filemap_invalidate_unlock_shared(mapping);
+ 
+-	return VM_FAULT_SIGBUS;
++	ret = VM_FAULT_SIGBUS;
++	goto out_ret;
+ 
+ out_retry:
+ 	/*
+@@ -3504,7 +3517,10 @@ vm_fault_t filemap_fault(struct vm_fault *vmf)
+ 		filemap_invalidate_unlock_shared(mapping);
+ 	if (fpin)
+ 		fput(fpin);
+-	return ret | VM_FAULT_RETRY;
++	ret |= VM_FAULT_RETRY;
++out_ret:
++	exit_file_interleave(file);
++	return ret;
+ }
+ EXPORT_SYMBOL(filemap_fault);
+ 
+-- 
+2.39.5
+
