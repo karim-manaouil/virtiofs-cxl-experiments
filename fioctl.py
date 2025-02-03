@@ -1,20 +1,24 @@
 import numpy as np
 import sys
+import os
 
-NR_FILES = 32
+NR_FILES =      32
+NR_WORKERS =    8
 PRIVATE_RATIO = 25
-MAX_FLOWS = 100
-HOT_RATIO=70
+MAX_FLOWS =     100
+HOT_RATIO =     70
+
+DIR="/mnt"
+CREATE=0
 
 FIO_GLOBAL = """[global]
 group_reporting=1
-directory=/mnt/
 rw=read
 size=1G
 bs=1M
 unique_filename=0
 time_based=1
-runtime=60
+runtime=10
 iodepth=8
 ioengine=libaio
 direct=1
@@ -44,6 +48,22 @@ def random_partition(n: int, total: int, min_value: int):
 
     return values
 
+def count_dirs(nr_type_files, nr_files_per_dir):
+    nr_files = nr_type_files
+    nr_dirs = 0
+    taken = []
+
+    while nr_files:
+        if nr_files < nr_files_per_dir * 2:
+            take = nr_files
+        else:
+            take = nr_files_per_dir
+        nr_files -= take
+        taken.append(take)
+        nr_dirs += 1
+
+    return nr_dirs, taken
+
 def generate_fio_jobs(f):
     """
     MAX_FLOWS is divided between private and shared files according to
@@ -57,27 +77,58 @@ def generate_fio_jobs(f):
     max_private_flows = (int)(MAX_FLOWS * HOT_RATIO / 100)
     max_shared_flows = MAX_FLOWS - max_private_flows
 
-    print(f"nr_private_files={nr_private_files}")
-    print(f"nr_shared_files={nr_shared_files}")
-    print(f"max_private_flows={max_private_flows}")
-    print(f"max_shared_flows={max_shared_flows}")
+    nr_files_per_dir = int(NR_FILES / NR_WORKERS)
+    nr_private_dirs, taken_private = count_dirs(nr_private_files, nr_files_per_dir)
+    nr_shared_dirs, taken_shared  = count_dirs(nr_shared_files, nr_files_per_dir)
 
-    flows_private = random_partition(nr_private_files, max_private_flows, 1)
-    flows_shared = random_partition(nr_shared_files, max_shared_flows, 1)
+    print(
+            f"nr_private_files={nr_private_files}",
+            f"nr_shared_files={nr_shared_files}",
+            f"max_private_flows={max_private_flows}",
+            f"max_shared_flows={max_shared_flows}",
+            f"nr_files_per_dir={nr_files_per_dir}",
+            f"nr_private_dirs={nr_private_dirs}",
+            f"nr_shared_dirs={nr_shared_dirs}",
+            sep="\n"
+    )
+
+    flows_private = random_partition(nr_private_dirs, max_private_flows, 1)
+    flows_shared = random_partition(nr_shared_dirs, max_shared_flows, 1)
 
     print("private flows:", flows_private)
     print("shared flows:", flows_shared)
 
-    print(FIO_GLOBAL, file=f)
+    print(FIO_GLOBAL, file = f)
 
-    for file in range(nr_private_files):
-        print("""[private-{}]\nfilename=private-{}\nflow={}""".format(
-            file, file, flows_private[file]), file=f)
+    for dir in range(nr_private_dirs):
+        directory = DIR + "/private-" + str(dir)
+        if CREATE:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        print(
+                f"[private-{dir}]",
+                f"flow={flows_private[dir]}",
+                f"directory={directory}",
+                f"filename_format=private-$filenum",
+                f"nrfiles={taken_private[dir]}",
+                sep="\n",
+                file = f
+        )
 
-    for file in range(nr_shared_files):
-        print("""[shared-{}]\nfilename=shared-{}\nflow={}""".format(
-            file, file, flows_shared[file]), file=f)
-
+    for dir in range(nr_shared_dirs):
+        directory = DIR + "/shared-" + str(dir)
+        if CREATE:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        print(
+                f"[shared-{dir}]",
+                f"flow={flows_shared[dir]}",
+                f"directory={directory}",
+                f"filename_format=shared-$filenum",
+                f"nrfiles={taken_shared[dir]}",
+                sep="\n",
+                file = f
+        )
 
 if __name__ == "__main__":
 
