@@ -1,15 +1,41 @@
-From 11bd70dabf7df03d1b29f04398b0bf092ba4f66e Mon Sep 17 00:00:00 2001
+From 82e16c883a645bfd5ec5b7ea1c2915d744f6af8e Mon Sep 17 00:00:00 2001
 From: Karim Manaouil <kmanaouil.dev@gmail.com>
 Date: Fri, 24 Jan 2025 00:08:06 +0000
 Subject: [PATCH] mm/mempolicy: implement file weighted interleave
 
 ---
- mm/filemap.c   | 23 +++++++++++++++++++++++
- mm/mempolicy.c |  3 +++
- 2 files changed, 26 insertions(+)
+ include/linux/file.h      |  2 ++
+ include/linux/mempolicy.h |  2 --
+ mm/filemap.c              | 30 ++++++++++++++++++++++++++++++
+ mm/mempolicy.c            | 14 +++++++++++++-
+ 4 files changed, 45 insertions(+), 3 deletions(-)
 
+diff --git a/include/linux/file.h b/include/linux/file.h
+index 302f11355b10..bcf12245f36c 100644
+--- a/include/linux/file.h
++++ b/include/linux/file.h
+@@ -127,4 +127,6 @@ extern void __fput_sync(struct file *);
+ 
+ extern unsigned int sysctl_nr_open_min, sysctl_nr_open_max;
+ 
++void update_dax_sb(char *dax_user_path);
++
+ #endif /* __LINUX_FILE_H */
+diff --git a/include/linux/mempolicy.h b/include/linux/mempolicy.h
+index 9a659c57031d..ce9885e0178a 100644
+--- a/include/linux/mempolicy.h
++++ b/include/linux/mempolicy.h
+@@ -17,8 +17,6 @@
+ 
+ struct mm_struct;
+ 
+-extern char dax_user_path[1024];
+-
+ #define NO_INTERLEAVE_INDEX (-1UL)	/* use task il_prev for interleaving */
+ 
+ #ifdef CONFIG_NUMA
 diff --git a/mm/filemap.c b/mm/filemap.c
-index 5488bf089865..f2667a29f022 100644
+index 5488bf089865..cd2dc35c47e6 100644
 --- a/mm/filemap.c
 +++ b/mm/filemap.c
 @@ -47,6 +47,7 @@
@@ -20,31 +46,38 @@ index 5488bf089865..f2667a29f022 100644
  #include <asm/pgalloc.h>
  #include <asm/tlbflush.h>
  #include "internal.h"
-@@ -124,12 +125,34 @@
+@@ -124,12 +125,41 @@
   *    ->private_lock		(zap_pte_range->block_dirty_folio)
   */
  
-+char dax_user_path[1024];
-+struct super_block *dax_sb;
++static struct super_block *dax_sb;
++static DEFINE_SPINLOCK(dax_sb_lock);
++
++void update_dax_sb(char *dax_user_path)
++{
++	struct path dax_path;
++	unsigned long flags;
++	int err;
++
++	err = kern_path(dax_user_path, LOOKUP_FOLLOW, &dax_path);
++	if (err)
++		return;
++
++	spin_lock_irqsave(&dax_sb_lock, flags);
++	dax_sb = dax_path.dentry->d_sb;
++	spin_unlock_irqrestore(&dax_sb_lock, flags);
++
++	path_put(&dax_path);
++}
 +
  static void enter_file_interleave(struct file *file)
  {
-+	struct path dax_path;
-+	struct super_block *dax_sb;
-+	struct super_block *file_sb = file->f_path.dentry->d_sb;
-+	int err;
++	struct super_block *file_sb;
 +
-+	if (!file || dax_user_path[0] != '/')
++	if (!dax_sb || !file)
 +		return;
 +
-+	if (!dax_sb) {
-+		err = kern_path(dax_user_path, LOOKUP_FOLLOW, &dax_path);
-+		if (err)
-+			return;
-+		dax_sb = dax_path.dentry->d_sb;
-+		path_put(&dax_path);
-+	}
-+
++	file_sb = file->f_path.dentry->d_sb;
 +	if (file_sb == dax_sb)
 +		current->file_interleave = true;
  }
@@ -56,10 +89,27 @@ index 5488bf089865..f2667a29f022 100644
  
  static void page_cache_delete(struct address_space *mapping,
 diff --git a/mm/mempolicy.c b/mm/mempolicy.c
-index e7c440256733..8cc12d381a82 100644
+index e7c440256733..db1b2223d355 100644
 --- a/mm/mempolicy.c
 +++ b/mm/mempolicy.c
-@@ -2338,6 +2338,9 @@ struct page *alloc_frozen_pages_noprof(gfp_t gfp, unsigned order)
+@@ -109,6 +109,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/printk.h>
+ #include <linux/swapops.h>
++#include <linux/file.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/tlb.h>
+@@ -121,6 +122,8 @@
+ #define MPOL_MF_INVERT       (MPOL_MF_INTERNAL << 1)	/* Invert check for nodemask */
+ #define MPOL_MF_WRLOCK       (MPOL_MF_INTERNAL << 2)	/* Write-lock walked vmas */
+ 
++static char dax_user_path[64];
++
+ static struct kmem_cache *policy_cache;
+ static struct kmem_cache *sn_cache;
+ 
+@@ -2338,6 +2341,9 @@ struct page *alloc_frozen_pages_noprof(gfp_t gfp, unsigned order)
  	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
  		pol = get_task_policy(current);
  
@@ -69,6 +119,27 @@ index e7c440256733..8cc12d381a82 100644
  	return alloc_pages_mpol(gfp, order, pol, NO_INTERLEAVE_INDEX,
  				       numa_node_id());
  }
+@@ -3499,13 +3505,19 @@ static ssize_t ifs_show(struct kobject *kobj, struct kobj_attribute *attr,
+ static ssize_t ifs_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 			  const char *buf, size_t count)
+ {
+-	char *end = strchr(buf, '\n');
++	char *end;
+ 
++	if (count >= 64)
++		return -EINVAL;
++
++	end = strchr(buf, '\n');
+ 	if (end)
+ 		*end = 0;
+ 
+ 	memcpy(dax_user_path, buf, count);
+ 
++	update_dax_sb(dax_user_path);
++
+ 	return count;
+ }
+ 
 -- 
 2.39.5
 
