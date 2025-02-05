@@ -1,20 +1,29 @@
 #!/bin/sh
 set -o xtrace
 
+setup_hugepages()
+{
+	mount -t hugetlbfs none /dev/hugepages/ -opagesize=1G
+
+	numactl -m 2 echo 32 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages_mempolicy
+	numactl -m 2 fallocate -l 32G /dev/hugepages/memory-file-vm0
+
+	numactl -m 3 echo 32 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages_mempolicy
+	numactl -m 3 fallocate -l 32G /dev/hugepages/memory-file-vm1
+}
+
 echo 0 > /proc/sys/kernel/numa_balancing
 
 for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
 	echo performance > $cpu
 done
 
-echo 64 > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
-
-mount -t hugetlbfs none /dev/hugepages/ -opagesize=1G
-
-fallocate -l 32G /dev/hugepages/memory-file-vm0
-fallocate -l 32G /dev/hugepages/memory-file-vm1
+#setup_hugepages
 
 /home/karim/vmctl.sh bridge vmbr0
 /home/karim/vmctl.sh taps vmbr0 tap0 tap1
 /home/karim/vmctl.sh route vmbr0 enp2s0f0np0
+
+mount /dev/nvme1n1 /srv/dax
+echo /srv/dax/ > /sys/kernel/mm/mempolicy/weighted_interleave/interleave_fs
 
