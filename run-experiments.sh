@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PRIVATE_RATIOS=(5 20 40 50 70 90)
-ACCESS_RATIOS=(50 70 90)
+THETAS=(0 0.5 1 1.2 1.5)
+PRIVATE_RATIOS=(0 5 20 50 70 100)
 
 TIMESTAMP=`date +%s`
 
@@ -29,19 +29,19 @@ function shutdown_host()
 
 function generate()
 {
-	pratio=$1
-	aratio=$2
+	theta=$1
+	pratio=$2
 
 	python fioctl.py \
-		--private-ratio $pratio \
-		--access-ratio $aratio \
+		--private-ratio "$pratio" \
+		--theta "$theta" \
 		--output fio/jobs/main.fio >> $RESULTS
 }
 
 function run()
 {
-	pratio=$1
-	aratio=$2
+	theta=$1
+	pratio=$2
 
 	#sudo fio fio/jobs/main.fio >> $RESULTS
 	./fio/bin/fio --client=fio/host.list fio/current >> $RESULTS
@@ -87,22 +87,22 @@ function drop_caches_loop()
 
 function generate_and_run()
 {
-	pratio=$1
-	aratio=$2
+	theta=$1
+	pratio=$2
 
-	echo "--- Running pratio=$pratio, aratio=$aratio ---" | tee -a $RESULTS
+	echo "--- Running theta=$theta, pratio=$pratio ---" | tee -a $RESULTS
 
-	generate $pratio $aratio
+	generate $theta $pratio
 
-	for i in `seq 1 4`; do
+	for i in `seq 1 2`; do
 		printf "Starting host 0.."
 		start_host 0
 		printf "Starting host 1.."
 		start_host 1
 		sleep 0.5
-		monpid=$(start_monitoring "${TIMESTAMP}_${pratio}_${aratio}_${i}.csv")
+		monpid=$(start_monitoring "${TIMESTAMP}_${theta}_${pratio}_${i}.csv")
 		printf "Running.."
-		run $pratio $aratio
+		run $theta $pratio
 		printf "Done.."
 		sleep 1
 		shutdown_host 0
@@ -111,7 +111,7 @@ function generate_and_run()
 		sleep 5
 		kill -INT $monpid
 		printf "Waiting for monitor.."
-		wait $monpid
+		wait $monpid >/dev/null 2>&1
 		pkill_loop
 		printf "Pkill done..Droppping cache.."
 		drop_caches_loop
@@ -126,12 +126,9 @@ function main()
 	sleep 0.5
 	echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
 
-	generate_and_run 0 0
-	generate_and_run 100 100
-
-	for pratio in ${PRIVATE_RATIOS[@]}; do
-		for aratio in ${ACCESS_RATIOS[@]}; do
-			generate_and_run $pratio $aratio
+	for theta in ${THETAS[@]}; do
+		for pratio in ${PRIVATE_RATIOS[@]}; do
+			generate_and_run $theta $pratio
 		done
 	done
 

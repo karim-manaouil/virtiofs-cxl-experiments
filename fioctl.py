@@ -3,10 +3,20 @@ import argparse
 import sys
 import os
 
+"""
+Theta controls the skeweness of the zipfian distribution.
+Theta = 0 is equivalent to a uniform distribution.
+Theta = infinity ~ the first file gets all the accesses
+Theta = 0.5 ~ popular files gets most of the accesses, but gap is smaller.
+Theta = [1 - 1.5] ~ typical zipfian distribution
+Theta > 2 ~ Very sharp/Highly skewed distribution
+"""
+THETA=1.2
+
 NR_FILES =      64
 NR_WORKERS =    8
 PRIVATE_RATIO = 25
-MAX_FLOWS =     200
+MAX_FLOWS =     1000
 ACCESS_RATIO =  70
 
 DIR="/srv/dax"
@@ -28,27 +38,24 @@ verify=0
 invalidate=0
 """
 
-def random_partition(n: int, total: int, min_value: int):
+def generate_zipfian_flows(nr_files, max_flows, theta):
     """
-    Generate `n` random integer values that sum up to `total`, with each value
-    being at least `min_value`.
+    Generate a Zipfian distribution of flows for nr_files based on theta and max_flows.
 
-    :param n: Number of elements to generate.
-    :param total: The total sum of generated values.
-    :param min_value: The minimum value for each generated element.
-    :return: A NumPy array of `n` integer values summing to `total`.
+    :param nr_files: Total number of files
+    :param max_flows: Total number of flows to distribute
+    :param theta: Skewness parameter of the Zipfian distribution
+    :return: A list where the i-th element represents the number of flows assigned to file i
     """
+    # Generate Zipfian probabilities
+    ranks = np.arange(1, nr_files + 1)  # Rank from 1 to nr_files
+    probabilities = 1.0 / (ranks ** theta)  # Zipfian formula
+    probabilities /= probabilities.sum()  # Normalize to sum to 1
 
-    if min_value * n > total:
-        raise ValueError("The total sum is too small for the minimum value constraint.")
+    # Generate flow counts based on probabilities
+    flows = np.random.multinomial(max_flows, probabilities).astype(int)
 
-    adjusted_total = total - min_value * n
-
-    partitions = np.sort(np.random.uniform(0, adjusted_total, n - 1))
-    values = np.diff(np.concatenate(([0], partitions, [adjusted_total])))
-    values = np.round(values + min_value).astype(int)
-
-    return values
+    return flows.tolist()
 
 def count_dirs(nr_type_files, nr_files_per_dir):
     nr_files = nr_type_files
@@ -67,43 +74,28 @@ def count_dirs(nr_type_files, nr_files_per_dir):
     return nr_dirs, taken
 
 def generate_fio_jobs(f):
-    """
-    MAX_FLOWS is divided between private and shared files according to
-    ACCESS_RATIO. If ACCESS_RATIO=70, that means 70% of FLOWS are made to the
-    private files. If PRIVATE_FILES=5, then it means 70% of FLOWS goes
-    to 5% of the total files across the jobs.
-    """
     nr_private_files = (int)(NR_FILES * PRIVATE_RATIO / 100)
     nr_shared_files = NR_FILES - nr_private_files
-
-    max_private_flows = (int)(MAX_FLOWS * ACCESS_RATIO / 100)
-    max_shared_flows = MAX_FLOWS - max_private_flows
 
     nr_files_per_dir = int(NR_FILES / NR_WORKERS)
     nr_private_dirs, taken_private = count_dirs(nr_private_files, nr_files_per_dir)
     nr_shared_dirs, taken_shared  = count_dirs(nr_shared_files, nr_files_per_dir)
 
     print(
+            f"theta={THETA}",
             f"nr_files={NR_FILES}",
             f"private_ratio={PRIVATE_RATIO}",
-            f"access_ratio={ACCESS_RATIO}",
             f"nr_private_files={nr_private_files}",
             f"nr_shared_files={nr_shared_files}",
-            f"max_private_flows={max_private_flows}",
-            f"max_shared_flows={max_shared_flows}",
             f"nr_files_per_dir={nr_files_per_dir}",
             f"nr_private_dirs={nr_private_dirs}",
             f"nr_shared_dirs={nr_shared_dirs}",
             sep="\n"
     )
 
-    if max_private_flows:
-        flows_private = random_partition(nr_private_dirs, max_private_flows, 1)
-        print("private flows:", flows_private)
+    flows = generate_zipfian_flows(NR_FILES, MAX_FLOWS, THETA)
 
-    if max_shared_flows:
-        flows_shared = random_partition(nr_shared_dirs, max_shared_flows, 1)
-        print("shared flows:", flows_shared)
+    print("per-file flow distribution=", flows)
 
     print(FIO_GLOBAL, file = f)
 
@@ -114,7 +106,7 @@ def generate_fio_jobs(f):
                 os.makedirs(directory)
         print(
                 f"[private-{dir}]",
-                f"flow={flows_private[dir]}",
+                f"flow={flows[dir]}",
                 f"directory={directory}",
                 f"filename_format=private-$filenum",
                 f"nrfiles={taken_private[dir]}",
@@ -129,7 +121,7 @@ def generate_fio_jobs(f):
                 os.makedirs(directory)
         print(
                 f"[shared-{dir}]",
-                f"flow={flows_shared[dir]}",
+                f"flow={flows[nr_private_files + dir]}",
                 f"directory={directory}",
                 f"filename_format=shared-$filenum",
                 f"nrfiles={taken_shared[dir]}",
@@ -141,13 +133,13 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--private-ratio", type=int, help="% local files", required=True)
-    parser.add_argument("--access-ratio", type=int, help="% access to local files", required=True)
+    parser.add_argument("--theta", type=float, help="zipfian distribution skewness", required=True)
     parser.add_argument("--output", type=str, help="fio job file name", required=True)
 
     args = parser.parse_args()
 
     PRIVATE_RATIO = args.private_ratio
-    ACCESS_RATIO = args.access_ratio
+    THETA = args.theta
 
     with open(args.output, "w") as f:
         generate_fio_jobs(f)
