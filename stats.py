@@ -106,13 +106,12 @@ def plot_stats(file):
         plt.tight_layout()
         plt.show()
 
-def compare_stats(file, stat_name, cgroup1, cgroup2, cgroup3=None):
+def compare_stats(file, stat_name, cgroups, per_numa=False):
     """
-    Reads saved stats from a CSV file and plots the evolution of the given stat for up to three cgroups on the same graph.
+    Reads saved stats from a CSV file and plots the evolution of the given stat for multiple cgroups.
+    If per_numa is True, plots individual NUMA node values instead of aggregating.
     """
-    stats = {cgroup1: {"timestamps": [], "values": []}, cgroup2: {"timestamps": [], "values": []}}
-    if cgroup3:
-        stats[cgroup3] = {"timestamps": [], "values": []}
+    stats = {}
 
     with open(file, "r") as csvfile:
         reader = csv.DictReader(csvfile)
@@ -121,19 +120,27 @@ def compare_stats(file, stat_name, cgroup1, cgroup2, cgroup3=None):
             cgroup = row["cgroup"]
             stat = row["stat"]
 
-            if stat == stat_name and cgroup in stats:
-                try:
-                    # Sum NUMA node stats, ignoring missing or empty values
+            if stat == stat_name and cgroup in cgroups:
+                if per_numa:
+                    for node in row:
+                        if node.startswith("N") and row[node].strip():
+                            node_label = f"{cgroup}_{node}"
+                            if node_label not in stats:
+                                stats[node_label] = {"timestamps": [], "values": []}
+                            stats[node_label]["timestamps"].append(elapsed_time)
+                            stats[node_label]["values"].append(float(row[node]))
+                else:
+                    if cgroup not in stats:
+                        stats[cgroup] = {"timestamps": [], "values": []}
                     total = sum(float(row[node]) for node in row if node.startswith("N") and row[node].strip())
                     stats[cgroup]["timestamps"].append(elapsed_time)
                     stats[cgroup]["values"].append(total)
-                except ValueError:
-                    print(f"Skipping row with invalid data: {row}")
 
     # Plot comparison
     plt.figure(figsize=(10, 6))
-    for cgroup, values in stats.items():
-        plt.plot(values["timestamps"], values["values"], label=f"{stat_name} ({cgroup})")
+    for label, values in stats.items():
+        plt.plot(values["timestamps"], values["values"], label=f"{stat_name} ({label})")
+        plt.text(values["timestamps"][-1], values["values"][-1], label, fontsize=9, verticalalignment='bottom', horizontalalignment='right')
 
     plt.xlabel("Seconds Elapsed")
     plt.ylabel("Memory (MB)")
@@ -162,9 +169,8 @@ if __name__ == "__main__":
     compare_parser = subparsers.add_parser("compare", help="Compare a stat between up to three cgroups.")
     compare_parser.add_argument("--file", required=True, help="CSV file containing saved stats.")
     compare_parser.add_argument("--stat", required=True, help="Stat name to compare.")
-    compare_parser.add_argument("--cgroup1", required=True, help="First cgroup to compare.")
-    compare_parser.add_argument("--cgroup2", required=True, help="Second cgroup to compare.")
-    compare_parser.add_argument("--cgroup3", help="Third cgroup to compare (optional).")
+    compare_parser.add_argument("--cgroups", nargs="+", required=True, help="List of cgroups to compare.")
+    compare_parser.add_argument("--per-numa", action="store_true", help="Plot per NUMA node instead of aggregating.")
 
     args = parser.parse_args()
 
@@ -184,4 +190,4 @@ if __name__ == "__main__":
     elif args.command == "plot":
         plot_stats(args.file)
     elif args.command == "compare":
-        compare_stats(args.file, args.stat, args.cgroup1, args.cgroup2, args.cgroup3)
+        compare_stats(args.file, args.stat, args.cgroups, args.per_numa)
