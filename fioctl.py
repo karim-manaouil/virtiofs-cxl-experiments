@@ -1,14 +1,15 @@
 import numpy as np
+import argparse
 import sys
 import os
 
-NR_FILES =      32
+NR_FILES =      64
 NR_WORKERS =    8
 PRIVATE_RATIO = 25
-MAX_FLOWS =     100
-HOT_RATIO =     70
+MAX_FLOWS =     200
+ACCESS_RATIO =  70
 
-DIR="/mnt"
+DIR="/srv/dax"
 CREATE=0
 
 FIO_GLOBAL = """[global]
@@ -18,10 +19,11 @@ size=1G
 bs=1M
 unique_filename=0
 time_based=1
-runtime=10
+runtime=60s
+ramp_time=2s
 iodepth=8
 ioengine=libaio
-direct=1
+direct=0
 verify=0
 invalidate=0
 """
@@ -67,14 +69,14 @@ def count_dirs(nr_type_files, nr_files_per_dir):
 def generate_fio_jobs(f):
     """
     MAX_FLOWS is divided between private and shared files according to
-    HOT_RATIO. If HOT_RATIO=70, that means 70% of FLOWS are made to the
+    ACCESS_RATIO. If ACCESS_RATIO=70, that means 70% of FLOWS are made to the
     private files. If PRIVATE_FILES=5, then it means 70% of FLOWS goes
     to 5% of the total files across the jobs.
     """
     nr_private_files = (int)(NR_FILES * PRIVATE_RATIO / 100)
     nr_shared_files = NR_FILES - nr_private_files
 
-    max_private_flows = (int)(MAX_FLOWS * HOT_RATIO / 100)
+    max_private_flows = (int)(MAX_FLOWS * ACCESS_RATIO / 100)
     max_shared_flows = MAX_FLOWS - max_private_flows
 
     nr_files_per_dir = int(NR_FILES / NR_WORKERS)
@@ -82,6 +84,9 @@ def generate_fio_jobs(f):
     nr_shared_dirs, taken_shared  = count_dirs(nr_shared_files, nr_files_per_dir)
 
     print(
+            f"nr_files={NR_FILES}",
+            f"private_ratio={PRIVATE_RATIO}",
+            f"access_ratio={ACCESS_RATIO}",
             f"nr_private_files={nr_private_files}",
             f"nr_shared_files={nr_shared_files}",
             f"max_private_flows={max_private_flows}",
@@ -92,16 +97,18 @@ def generate_fio_jobs(f):
             sep="\n"
     )
 
-    flows_private = random_partition(nr_private_dirs, max_private_flows, 1)
-    flows_shared = random_partition(nr_shared_dirs, max_shared_flows, 1)
+    if max_private_flows:
+        flows_private = random_partition(nr_private_dirs, max_private_flows, 1)
+        print("private flows:", flows_private)
 
-    print("private flows:", flows_private)
-    print("shared flows:", flows_shared)
+    if max_shared_flows:
+        flows_shared = random_partition(nr_shared_dirs, max_shared_flows, 1)
+        print("shared flows:", flows_shared)
 
     print(FIO_GLOBAL, file = f)
 
     for dir in range(nr_private_dirs):
-        directory = DIR + "/private-" + str(dir)
+        directory = DIR + "/private/private-" + str(dir)
         if CREATE:
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -116,7 +123,7 @@ def generate_fio_jobs(f):
         )
 
     for dir in range(nr_shared_dirs):
-        directory = DIR + "/shared-" + str(dir)
+        directory = DIR + "/shared/shared-" + str(dir)
         if CREATE:
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -132,11 +139,15 @@ def generate_fio_jobs(f):
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
-        print(f"Usage: python {sys.argv[0]} <output_file>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--private-ratio", type=int, help="% local files", required=True)
+    parser.add_argument("--access-ratio", type=int, help="% access to local files", required=True)
+    parser.add_argument("--output", type=str, help="fio job file name", required=True)
 
-    filename = sys.argv[1]
+    args = parser.parse_args()
 
-    with open(filename, "w") as f:
+    PRIVATE_RATIO = args.private_ratio
+    ACCESS_RATIO = args.access_ratio
+
+    with open(args.output, "w") as f:
         generate_fio_jobs(f)

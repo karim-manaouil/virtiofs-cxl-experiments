@@ -1,8 +1,11 @@
 #!/bin/bash
 
-QEMU="/home/karim/dax-qemu/build/qemu-system-x86_64"
+ILR_NODE=(2 3)
 
-KPATH="/tmp/linux/akpm"
+__QEMU="/home/karim/dax-qemu/build/qemu-system-x86_64"
+QEMU="./numactl/build/numactl -w ${ILR_NODE[$1]},4 $__QEMU"
+
+KPATH="/home/karim/build/linux/akpm"
 VMLINUX="$KPATH/vmlinux"
 
 VM="vm$1"
@@ -17,7 +20,7 @@ kcmdline=(
 		"earlyprintk=ttyS0"
 	)
 
-MEMFILE="/dev/huge-1g/memory-file-$VM"
+MEMFILE="images/memory-file-$VM"
 
 $QEMU \
 	-enable-kvm \
@@ -31,8 +34,10 @@ $QEMU \
 	-drive format=raw,file="images/$VM.img",if=virtio \
 	-netdev tap,id=mynet1,vhost=on,queues="$SMP",ifname="$TAP",script=no,downscript=no \
 	-device virtio-net,netdev=mynet1,mq=on,vectors="$SMP",mac="${MACS[$1]}" \
-	-chardev socket,id=char0,path=/tmp/"$VM.sock" \
-	-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=daxfs \
+	-chardev socket,id=char0,path=/tmp/"$VM.private.sock" \
+	-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=daxfs-private \
+	-chardev socket,id=char1,path=/tmp/"$VM.shared.sock" \
+	-device vhost-user-fs-pci,queue-size=1024,chardev=char1,tag=daxfs-shared,cache-size=64G \
 	-display none \
 	-serial pty \
-	-daemonize 2>logs/qemu_log
+	-daemonize >>"logs/qemu_${VM}_log" 2>&1

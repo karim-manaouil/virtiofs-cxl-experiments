@@ -3,14 +3,22 @@
 VM="vm$1"
 
 VIRTIOFSD="/home/karim/dax-qemu/build/tools/virtiofsd/virtiofsd"
+#VIRTIOFSD="./numactl/build/numactl -w 0,4 $__VIRTIOFSD"
 
 $VIRTIOFSD \
-	--daemonize \
-	--socket-path=/tmp/$VM.sock \
-	-o source=/srv/dax \
-	-o cache=none \
+	--socket-path=/tmp/$VM.private.sock \
+	-o source=/srv/dax/private \
+	-o cache=always \
 	-o allow_direct_io \
 	-o allow_root \
 	--thread-pool-size=2 \
-	2>logs/virtiofsd_log
+	2>"logs/virtiofsd_shared_${VM}_log" &
 
+$VIRTIOFSD \
+	--socket-path=/tmp/$VM.shared.sock \
+	-o source=/srv/dax/shared \
+	-o cache=always \
+	-o allow_direct_io \
+	-o allow_root \
+	--thread-pool-size=2 \
+	2>"logs/virtiofsd_shared_${VM}_log" &
