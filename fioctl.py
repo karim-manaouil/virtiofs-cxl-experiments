@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import json
 import sys
 import os
 
@@ -13,19 +14,20 @@ Theta > 2 ~ Very sharp/Highly skewed distribution
 """
 THETA=1.2
 
-NR_FILES =      64
-NR_WORKERS =    8
+NR_FILES =      12
 PRIVATE_RATIO = 25
-MAX_FLOWS =     1000
+MAX_FLOWS =     100
 ACCESS_RATIO =  70
 
 DIR="/srv/dax"
-CREATE=0
+CREATE=1
+
+FLOWS_FILE="fio-flows.json"
 
 FIO_GLOBAL = """[global]
 group_reporting=1
 rw=read
-size=1G
+size=6G
 bs=1M
 unique_filename=0
 time_based=1
@@ -54,32 +56,13 @@ def generate_zipfian_flows(nr_files, max_flows, theta):
 
     # Generate flow counts based on probabilities
     flows = np.random.multinomial(max_flows, probabilities).astype(int)
+    #flows = -np.sort(-flows)
 
     return flows.tolist()
 
-def count_dirs(nr_type_files, nr_files_per_dir):
-    nr_files = nr_type_files
-    nr_dirs = 0
-    taken = []
-
-    while nr_files:
-        if nr_files < nr_files_per_dir * 2:
-            take = nr_files
-        else:
-            take = nr_files_per_dir
-        nr_files -= take
-        taken.append(take)
-        nr_dirs += 1
-
-    return nr_dirs, taken
-
-def generate_fio_jobs(f):
+def generate_fio_jobs(fio_file):
     nr_private_files = (int)(NR_FILES * PRIVATE_RATIO / 100)
     nr_shared_files = NR_FILES - nr_private_files
-
-    nr_files_per_dir = int(NR_FILES / NR_WORKERS)
-    nr_private_dirs, taken_private = count_dirs(nr_private_files, nr_files_per_dir)
-    nr_shared_dirs, taken_shared  = count_dirs(nr_shared_files, nr_files_per_dir)
 
     print(
             f"theta={THETA}",
@@ -87,59 +70,71 @@ def generate_fio_jobs(f):
             f"private_ratio={PRIVATE_RATIO}",
             f"nr_private_files={nr_private_files}",
             f"nr_shared_files={nr_shared_files}",
-            f"nr_files_per_dir={nr_files_per_dir}",
-            f"nr_private_dirs={nr_private_dirs}",
-            f"nr_shared_dirs={nr_shared_dirs}",
             sep="\n"
     )
 
-    flows = generate_zipfian_flows(NR_FILES, MAX_FLOWS, THETA)
+    with open(FLOWS_FILE, "r") as f:
+        flows = json.load(f)
 
     print("per-file flow distribution=", flows)
 
-    print(FIO_GLOBAL, file = f)
+    print(FIO_GLOBAL, file = fio_file)
 
-    for dir in range(nr_private_dirs):
-        directory = DIR + "/private/private-" + str(dir)
+    for file in range(nr_private_files):
+        directory = DIR + "/private/"
+        filename = directory + "private-" + str(file)
         if CREATE:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         print(
-                f"[private-{dir}]",
-                f"flow={flows[dir]}",
-                f"directory={directory}",
-                f"filename_format=private-$filenum",
-                f"nrfiles={taken_private[dir]}",
+                f"[private-{file}]",
+                f"flow={flows[file]}",
+                f"filename={filename}",
                 sep="\n",
-                file = f
+                file = fio_file
         )
 
-    for dir in range(nr_shared_dirs):
-        directory = DIR + "/shared/shared-" + str(dir)
+    for file in range(nr_shared_files):
+        directory = DIR + "/shared/"
+        filename = directory + "shared-" + str(file)
         if CREATE:
             if not os.path.exists(directory):
                 os.makedirs(directory)
         print(
-                f"[shared-{dir}]",
-                f"flow={flows[nr_private_files + dir]}",
-                f"directory={directory}",
-                f"filename_format=shared-$filenum",
-                f"nrfiles={taken_shared[dir]}",
+                f"[shared-{file}]",
+                f"flow={flows[nr_private_files + file]}",
+                f"filename={filename}",
                 sep="\n",
-                file = f
+                file = fio_file
         )
+
+def generate_flows():
+    nr_private_files = (int)(NR_FILES * PRIVATE_RATIO / 100)
+    nr_shared_files = NR_FILES - nr_private_files
+
+    flows = generate_zipfian_flows(nr_private_files + nr_shared_files, MAX_FLOWS, THETA)
+
+    with open(FLOWS_FILE, "w") as f:
+        json.dump(flows, f)
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--private-ratio", type=int, help="% local files", required=True)
-    parser.add_argument("--theta", type=float, help="zipfian distribution skewness", required=True)
-    parser.add_argument("--output", type=str, help="fio job file name", required=True)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    gen_parser = subparsers.add_parser("generate", help="Generate distribution into file")
+    gen_parser.add_argument("--theta", type=float, help="zipfian distribution skewness", required=True)
+
+    fio_parser = subparsers.add_parser("fio", help="Generate fio")
+    fio_parser.add_argument("--private-ratio", type=int, help="% local files", required=True)
+    fio_parser.add_argument("--output", type=str, help="fio job file name", required=True)
 
     args = parser.parse_args()
 
-    PRIVATE_RATIO = args.private_ratio
-    THETA = args.theta
-
-    with open(args.output, "w") as f:
-        generate_fio_jobs(f)
+    if args.command == "generate":
+        THETA = args.theta
+        generate_flows()
+    elif args.command == "fio":
+        PRIVATE_RATIO = args.private_ratio
+        with open(args.output, "w") as f:
+            generate_fio_jobs(f)

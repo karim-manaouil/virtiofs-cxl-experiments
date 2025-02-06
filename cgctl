@@ -48,6 +48,6 @@ function ctrl_c() {
 
 ./cgrun "$VIRTIOCG" ./virtiofsd $1 &
 
-sleep 0.1
+sleep 1
 
 ./cgrun "$VMCG" ./qemuctl $1 &

@@ -1,11 +1,13 @@
 #!/bin/bash
 
+set -o xtrace
+
 THETAS=(0 0.5 1 1.2 1.5)
 PRIVATE_RATIOS=(0 5 20 50 70 100)
 
 TIMESTAMP=`date +%s`
 
-RESULTS="fio.results.${TIMESTAMP}"
+RESULTS="results/fio.results.${TIMESTAMP}"
 
 function start_host()
 {
@@ -27,22 +29,18 @@ function shutdown_host()
 	ssh "root@${host}" "shutdown -h now --no-wall"
 }
 
-function generate()
+function generate_zipf()
 {
-	theta=$1
-	pratio=$2
-
-	python fioctl.py \
-		--private-ratio "$pratio" \
-		--theta "$theta" \
-		--output fio/jobs/main.fio >> $RESULTS
+	python fioctl.py generate --theta "$1"
 }
 
-function run()
+function generate_fio()
 {
-	theta=$1
-	pratio=$2
+	python fioctl.py fio --private-ratio "$1" --output fio/jobs/main.fio >> $RESULTS
+}
 
+function run_fio()
+{
 	#sudo fio fio/jobs/main.fio >> $RESULTS
 	./fio/bin/fio --client=fio/host.list fio/current >> $RESULTS
 }
@@ -77,58 +75,72 @@ function pkill_loop()
 	do_pkill "python"
 }
 
-function drop_caches_loop()
-{
-	for i in `seq 1 5`; do
+function drop_caches() {
+    while true; do
+        read -r _ line < <(numastat -m | grep FilePages)
+        read -ra values <<< "$line"
+
+        for ((i=0; i<${#values[@]}-1; i++)); do
+            if (( $(echo "${values[i]} > 200" | bc -l) )); then
 		echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
-		sleep 1
-	done
+                sleep 1
+                continue 2
+            fi
+        done
+        return
+    done
 }
 
-function generate_and_run()
+function clean()
+{
+	printf "Cleaning.."
+	pkill_loop
+	printf "Pkill done..Droppping cache.."
+	sudo rm /tmp/*.sock
+	drop_caches
+	printf "Done\n"
+	sleep 1
+}
+
+function run()
 {
 	theta=$1
 	pratio=$2
 
 	echo "--- Running theta=$theta, pratio=$pratio ---" | tee -a $RESULTS
 
-	generate $theta $pratio
-
 	for i in `seq 1 2`; do
 		printf "Starting host 0.."
 		start_host 0
 		printf "Starting host 1.."
 		start_host 1
-		sleep 0.5
-		monpid=$(start_monitoring "${TIMESTAMP}_${theta}_${pratio}_${i}.csv")
+		sleep 1
+		monpid=$(start_monitoring "${TIMESTAMP}_${theta}_${pratio}_${i}")
 		printf "Running.."
-		run $theta $pratio
+		run_fio
 		printf "Done.."
 		sleep 1
+		printf "Shutting down.."
 		shutdown_host 0
 		shutdown_host 1
-		printf "Shutting down.."
 		sleep 5
 		kill -INT $monpid
-		printf "Waiting for monitor.."
-		wait $monpid >/dev/null 2>&1
-		pkill_loop
-		printf "Pkill done..Droppping cache.."
-		drop_caches_loop
-		printf "Done\n"
 		sleep 5
+		clean
 	done
 }
 
 function main()
 {
-	sudo pkill qemu
-	sleep 0.5
-	echo 3 | sudo tee /proc/sys/vm/drop_caches >/dev/null
+	clean
+
+	echo "Starting.. Timestap is ${TIMESTAMP}"
 
 	for theta in ${THETAS[@]}; do
+		generate_zipf $theta
 		for pratio in ${PRIVATE_RATIOS[@]}; do
-			generate_and_run $theta $pratio
+			generate_fio $pratio
+			run $theta $pratio
 		done
 	done
 

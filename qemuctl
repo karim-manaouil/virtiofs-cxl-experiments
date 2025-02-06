@@ -25,7 +25,7 @@ MEMFILE="images/memory-file-$VM"
 $QEMU \
 	-enable-kvm \
 	-cpu host \
-	-smp 8 \
+	-smp 12 \
 	-m 32G \
 	-object memory-backend-file,id=mem0,mem-path=$MEMFILE,size=32G,share=on \
 	-numa node,memdev=mem0 \
