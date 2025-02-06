@@ -1,0 +1,150 @@
+--- Running theta=0, pratio=0 ---
+   READ: bw=4136MiB/s (4337MB/s), 4136MiB/s-4136MiB/s (4337MB/s-4337MB/s), io=242GiB (260GB), run=60004-60004msec
+   READ: bw=3563MiB/s (3736MB/s), 3563MiB/s-3563MiB/s (3736MB/s-3736MB/s), io=209GiB (224GB), run=60001-60001msec
+   READ: bw=3531MiB/s (3703MB/s), 3531MiB/s-3531MiB/s (3703MB/s-3703MB/s), io=207GiB (222GB), run=60004-60004msec
+   READ: bw=3905MiB/s (4095MB/s), 3905MiB/s-3905MiB/s (4095MB/s-4095MB/s), io=229GiB (246GB), run=60004-60004msec
+--- Running theta=0, pratio=5 ---
+   READ: bw=3947MiB/s (4139MB/s), 3947MiB/s-3947MiB/s (4139MB/s-4139MB/s), io=231GiB (248GB), run=60002-60002msec
+   READ: bw=3557MiB/s (3730MB/s), 3557MiB/s-3557MiB/s (3730MB/s-3730MB/s), io=208GiB (224GB), run=60002-60002msec
+   READ: bw=4004MiB/s (4198MB/s), 4004MiB/s-4004MiB/s (4198MB/s-4198MB/s), io=235GiB (252GB), run=60001-60001msec
+   READ: bw=3601MiB/s (3776MB/s), 3601MiB/s-3601MiB/s (3776MB/s-3776MB/s), io=211GiB (227GB), run=60001-60001msec
+--- Running theta=0, pratio=20 ---
+   READ: bw=4979MiB/s (5221MB/s), 4979MiB/s-4979MiB/s (5221MB/s-5221MB/s), io=292GiB (313GB), run=60001-60001msec
+   READ: bw=4002MiB/s (4196MB/s), 4002MiB/s-4002MiB/s (4196MB/s-4196MB/s), io=234GiB (252GB), run=60001-60001msec
+   READ: bw=5269MiB/s (5525MB/s), 5269MiB/s-5269MiB/s (5525MB/s-5525MB/s), io=309GiB (332GB), run=60069-60069msec
+   READ: bw=6367MiB/s (6677MB/s), 6367MiB/s-6367MiB/s (6677MB/s-6677MB/s), io=373GiB (401GB), run=60023-60023msec
+--- Running theta=0, pratio=50 ---
+   READ: bw=952MiB/s (999MB/s), 952MiB/s-952MiB/s (999MB/s-999MB/s), io=55.8GiB (60.0GB), run=60039-60039msec
+   READ: bw=937MiB/s (983MB/s), 937MiB/s-937MiB/s (983MB/s-983MB/s), io=55.0GiB (59.0GB), run=60065-60065msec
+   READ: bw=627MiB/s (657MB/s), 627MiB/s-627MiB/s (657MB/s-657MB/s), io=36.7GiB (39.5GB), run=60032-60032msec
+   READ: bw=627MiB/s (658MB/s), 627MiB/s-627MiB/s (658MB/s-658MB/s), io=36.8GiB (39.5GB), run=60054-60054msec
+--- Running theta=0, pratio=70 ---
+   READ: bw=727MiB/s (763MB/s), 727MiB/s-727MiB/s (763MB/s-763MB/s), io=42.6GiB (45.8GB), run=60008-60008msec
+   READ: bw=729MiB/s (765MB/s), 729MiB/s-729MiB/s (765MB/s-765MB/s), io=42.8GiB (45.9GB), run=60045-60045msec
+   READ: bw=618MiB/s (648MB/s), 618MiB/s-618MiB/s (648MB/s-648MB/s), io=36.2GiB (38.9GB), run=60027-60027msec
+   READ: bw=649MiB/s (681MB/s), 649MiB/s-649MiB/s (681MB/s-681MB/s), io=38.1GiB (40.9GB), run=60104-60104msec
+--- Running theta=0, pratio=100 ---
+   READ: bw=510MiB/s (535MB/s), 510MiB/s-510MiB/s (535MB/s-535MB/s), io=29.9GiB (32.1GB), run=60080-60080msec
+   READ: bw=493MiB/s (517MB/s), 493MiB/s-493MiB/s (517MB/s-517MB/s), io=29.0GiB (31.1GB), run=60094-60094msec
+   READ: bw=2627MiB/s (2755MB/s), 2627MiB/s-2627MiB/s (2755MB/s-2755MB/s), io=154GiB (165GB), run=60002-60002msec
+   READ: bw=2635MiB/s (2762MB/s), 2635MiB/s-2635MiB/s (2762MB/s-2762MB/s), io=154GiB (166GB), run=60001-60001msec
+--- Running theta=0.5, pratio=0 ---
+   READ: bw=3741MiB/s (3922MB/s), 3741MiB/s-3741MiB/s (3922MB/s-3922MB/s), io=219GiB (235GB), run=60001-60001msec
+   READ: bw=3290MiB/s (3450MB/s), 3290MiB/s-3290MiB/s (3450MB/s-3450MB/s), io=193GiB (207GB), run=60002-60002msec
+   READ: bw=3414MiB/s (3580MB/s), 3414MiB/s-3414MiB/s (3580MB/s-3580MB/s), io=200GiB (215GB), run=60004-60004msec
+   READ: bw=4234MiB/s (4439MB/s), 4234MiB/s-4234MiB/s (4439MB/s-4439MB/s), io=248GiB (266GB), run=60001-60001msec
+--- Running theta=0.5, pratio=5 ---
+   READ: bw=3802MiB/s (3987MB/s), 3802MiB/s-3802MiB/s (3987MB/s-3987MB/s), io=223GiB (239GB), run=60004-60004msec
+   READ: bw=3246MiB/s (3403MB/s), 3246MiB/s-3246MiB/s (3403MB/s-3403MB/s), io=190GiB (204GB), run=60002-60002msec
+   READ: bw=3721MiB/s (3901MB/s), 3721MiB/s-3721MiB/s (3901MB/s-3901MB/s), io=218GiB (234GB), run=60003-60003msec
+   READ: bw=4041MiB/s (4237MB/s), 4041MiB/s-4041MiB/s (4237MB/s-4237MB/s), io=237GiB (254GB), run=60003-60003msec
+--- Running theta=0.5, pratio=20 ---
+   READ: bw=4097MiB/s (4296MB/s), 4097MiB/s-4097MiB/s (4296MB/s-4296MB/s), io=240GiB (258GB), run=60001-60001msec
+   READ: bw=3102MiB/s (3252MB/s), 3102MiB/s-3102MiB/s (3252MB/s-3252MB/s), io=182GiB (195GB), run=60001-60001msec
+   READ: bw=6556MiB/s (6875MB/s), 6556MiB/s-6556MiB/s (6875MB/s-6875MB/s), io=384GiB (412GB), run=60001-60001msec
+   READ: bw=7862MiB/s (8244MB/s), 7862MiB/s-7862MiB/s (8244MB/s-8244MB/s), io=461GiB (495GB), run=60001-60001msec
+--- Running theta=0.5, pratio=50 ---
+   READ: bw=745MiB/s (781MB/s), 745MiB/s-745MiB/s (781MB/s-781MB/s), io=43.7GiB (46.9GB), run=60021-60021msec
+   READ: bw=762MiB/s (799MB/s), 762MiB/s-762MiB/s (799MB/s-799MB/s), io=44.6GiB (47.9GB), run=60033-60033msec
+   READ: bw=669MiB/s (702MB/s), 669MiB/s-669MiB/s (702MB/s-702MB/s), io=39.2GiB (42.1GB), run=60058-60058msec
+   READ: bw=689MiB/s (722MB/s), 689MiB/s-689MiB/s (722MB/s-722MB/s), io=40.4GiB (43.4GB), run=60043-60043msec
+--- Running theta=0.5, pratio=70 ---
+   READ: bw=504MiB/s (528MB/s), 504MiB/s-504MiB/s (528MB/s-528MB/s), io=29.5GiB (31.7GB), run=60036-60036msec
+   READ: bw=524MiB/s (549MB/s), 524MiB/s-524MiB/s (549MB/s-549MB/s), io=30.7GiB (33.0GB), run=60063-60063msec
+   READ: bw=474MiB/s (497MB/s), 474MiB/s-474MiB/s (497MB/s-497MB/s), io=27.8GiB (29.8GB), run=60004-60004msec
+   READ: bw=482MiB/s (505MB/s), 482MiB/s-482MiB/s (505MB/s-505MB/s), io=28.3GiB (30.3GB), run=60075-60075msec
+--- Running theta=0.5, pratio=100 ---
+   READ: bw=342MiB/s (358MB/s), 342MiB/s-342MiB/s (358MB/s-358MB/s), io=20.0GiB (21.5GB), run=60099-60099msec
+   READ: bw=351MiB/s (368MB/s), 351MiB/s-351MiB/s (368MB/s-368MB/s), io=20.6GiB (22.1GB), run=60116-60116msec
+   READ: bw=392MiB/s (411MB/s), 392MiB/s-392MiB/s (411MB/s-411MB/s), io=23.0GiB (24.7GB), run=60079-60079msec
+   READ: bw=385MiB/s (404MB/s), 385MiB/s-385MiB/s (404MB/s-404MB/s), io=22.6GiB (24.3GB), run=60087-60087msec
+--- Running theta=1, pratio=0 ---
+   READ: bw=5376MiB/s (5637MB/s), 5376MiB/s-5376MiB/s (5637MB/s-5637MB/s), io=315GiB (338GB), run=60001-60001msec
+   READ: bw=4598MiB/s (4821MB/s), 4598MiB/s-4598MiB/s (4821MB/s-4821MB/s), io=269GiB (289GB), run=60001-60001msec
+   READ: bw=5356MiB/s (5616MB/s), 5356MiB/s-5356MiB/s (5616MB/s-5616MB/s), io=314GiB (337GB), run=60003-60003msec
+   READ: bw=4271MiB/s (4478MB/s), 4271MiB/s-4271MiB/s (4478MB/s-4478MB/s), io=250GiB (269GB), run=60001-60001msec
+--- Running theta=1, pratio=5 ---
+   READ: bw=4566MiB/s (4787MB/s), 4566MiB/s-4566MiB/s (4787MB/s-4787MB/s), io=268GiB (287GB), run=60001-60001msec
+   READ: bw=4853MiB/s (5089MB/s), 4853MiB/s-4853MiB/s (5089MB/s-5089MB/s), io=284GiB (305GB), run=60001-60001msec
+   READ: bw=5362MiB/s (5623MB/s), 5362MiB/s-5362MiB/s (5623MB/s-5623MB/s), io=314GiB (337GB), run=60002-60002msec
+   READ: bw=4586MiB/s (4809MB/s), 4586MiB/s-4586MiB/s (4809MB/s-4809MB/s), io=269GiB (289GB), run=60001-60001msec
+--- Running theta=1, pratio=20 ---
+   READ: bw=8278MiB/s (8680MB/s), 8278MiB/s-8278MiB/s (8680MB/s-8680MB/s), io=485GiB (521GB), run=60002-60002msec
+   READ: bw=8223MiB/s (8622MB/s), 8223MiB/s-8223MiB/s (8622MB/s-8622MB/s), io=482GiB (517GB), run=60001-60001msec
+   READ: bw=8479MiB/s (8891MB/s), 8479MiB/s-8479MiB/s (8891MB/s-8891MB/s), io=497GiB (533GB), run=60001-60001msec
+   READ: bw=8488MiB/s (8901MB/s), 8488MiB/s-8488MiB/s (8901MB/s-8901MB/s), io=497GiB (534GB), run=60001-60001msec
+--- Running theta=1, pratio=50 ---
+   READ: bw=975MiB/s (1022MB/s), 975MiB/s-975MiB/s (1022MB/s-1022MB/s), io=57.1GiB (61.3GB), run=60021-60021msec
+   READ: bw=895MiB/s (938MB/s), 895MiB/s-895MiB/s (938MB/s-938MB/s), io=52.4GiB (56.3GB), run=60015-60015msec
+   READ: bw=1697MiB/s (1780MB/s), 1697MiB/s-1697MiB/s (1780MB/s-1780MB/s), io=99.5GiB (107GB), run=60014-60014msec
+   READ: bw=1346MiB/s (1412MB/s), 1346MiB/s-1346MiB/s (1412MB/s-1412MB/s), io=78.9GiB (84.7GB), run=60014-60014msec
+--- Running theta=1, pratio=70 ---
+   READ: bw=715MiB/s (750MB/s), 715MiB/s-715MiB/s (750MB/s-750MB/s), io=41.9GiB (45.0GB), run=60004-60004msec
+   READ: bw=688MiB/s (722MB/s), 688MiB/s-688MiB/s (722MB/s-722MB/s), io=40.3GiB (43.3GB), run=60001-60001msec
+   READ: bw=655MiB/s (687MB/s), 655MiB/s-655MiB/s (687MB/s-687MB/s), io=38.4GiB (41.2GB), run=60002-60002msec
+   READ: bw=593MiB/s (622MB/s), 593MiB/s-593MiB/s (622MB/s-622MB/s), io=34.8GiB (37.3GB), run=60016-60016msec
+--- Running theta=1, pratio=100 ---
+   READ: bw=435MiB/s (457MB/s), 435MiB/s-435MiB/s (457MB/s-457MB/s), io=25.5GiB (27.4GB), run=60034-60034msec
+   READ: bw=428MiB/s (448MB/s), 428MiB/s-428MiB/s (448MB/s-448MB/s), io=25.1GiB (26.9GB), run=60012-60012msec
+   READ: bw=425MiB/s (446MB/s), 425MiB/s-425MiB/s (446MB/s-446MB/s), io=24.9GiB (26.8GB), run=60012-60012msec
+   READ: bw=441MiB/s (463MB/s), 441MiB/s-441MiB/s (463MB/s-463MB/s), io=25.9GiB (27.8GB), run=60048-60048msec
+--- Running theta=1.2, pratio=0 ---
+   READ: bw=4605MiB/s (4828MB/s), 4605MiB/s-4605MiB/s (4828MB/s-4828MB/s), io=270GiB (290GB), run=60016-60016msec
+   READ: bw=5200MiB/s (5453MB/s), 5200MiB/s-5200MiB/s (5453MB/s-5453MB/s), io=305GiB (327GB), run=60001-60001msec
+   READ: bw=4591MiB/s (4814MB/s), 4591MiB/s-4591MiB/s (4814MB/s-4814MB/s), io=269GiB (289GB), run=60002-60002msec
+   READ: bw=5080MiB/s (5326MB/s), 5080MiB/s-5080MiB/s (5326MB/s-5326MB/s), io=298GiB (320GB), run=60001-60001msec
+--- Running theta=1.2, pratio=5 ---
+   READ: bw=4707MiB/s (4936MB/s), 4707MiB/s-4707MiB/s (4936MB/s-4936MB/s), io=276GiB (296GB), run=60001-60001msec
+   READ: bw=5106MiB/s (5354MB/s), 5106MiB/s-5106MiB/s (5354MB/s-5354MB/s), io=299GiB (321GB), run=60001-60001msec
+   READ: bw=5051MiB/s (5296MB/s), 5051MiB/s-5051MiB/s (5296MB/s-5296MB/s), io=296GiB (318GB), run=60002-60002msec
+   READ: bw=4520MiB/s (4739MB/s), 4520MiB/s-4520MiB/s (4739MB/s-4739MB/s), io=265GiB (284GB), run=60004-60004msec
+--- Running theta=1.2, pratio=20 ---
+   READ: bw=9427MiB/s (9885MB/s), 9427MiB/s-9427MiB/s (9885MB/s-9885MB/s), io=552GiB (593GB), run=60001-60001msec
+   READ: bw=9107MiB/s (9550MB/s), 9107MiB/s-9107MiB/s (9550MB/s-9550MB/s), io=534GiB (573GB), run=60002-60002msec
+   READ: bw=9409MiB/s (9866MB/s), 9409MiB/s-9409MiB/s (9866MB/s-9866MB/s), io=551GiB (592GB), run=60002-60002msec
+   READ: bw=9.87GiB/s (10.6GB/s), 9.87GiB/s-9.87GiB/s (10.6GB/s-10.6GB/s), io=592GiB (636GB), run=60001-60001msec
+--- Running theta=1.2, pratio=50 ---
+   READ: bw=1046MiB/s (1096MB/s), 1046MiB/s-1046MiB/s (1096MB/s-1096MB/s), io=61.3GiB (65.8GB), run=60012-60012msec
+   READ: bw=1211MiB/s (1270MB/s), 1211MiB/s-1211MiB/s (1270MB/s-1270MB/s), io=71.0GiB (76.2GB), run=60001-60001msec
+   READ: bw=751MiB/s (787MB/s), 751MiB/s-751MiB/s (787MB/s-787MB/s), io=44.0GiB (47.3GB), run=60046-60046msec
+   READ: bw=741MiB/s (777MB/s), 741MiB/s-741MiB/s (777MB/s-777MB/s), io=43.4GiB (46.6GB), run=60002-60002msec
+--- Running theta=1.2, pratio=70 ---
+   READ: bw=489MiB/s (513MB/s), 489MiB/s-489MiB/s (513MB/s-513MB/s), io=28.7GiB (30.8GB), run=60038-60038msec
+   READ: bw=465MiB/s (487MB/s), 465MiB/s-465MiB/s (487MB/s-487MB/s), io=27.3GiB (29.3GB), run=60040-60040msec
+   READ: bw=476MiB/s (499MB/s), 476MiB/s-476MiB/s (499MB/s-499MB/s), io=27.9GiB (30.0GB), run=60019-60019msec
+   READ: bw=462MiB/s (484MB/s), 462MiB/s-462MiB/s (484MB/s-484MB/s), io=27.1GiB (29.1GB), run=60030-60030msec
+--- Running theta=1.2, pratio=100 ---
+   READ: bw=419MiB/s (439MB/s), 419MiB/s-419MiB/s (439MB/s-439MB/s), io=24.6GiB (26.4GB), run=60023-60023msec
+   READ: bw=380MiB/s (398MB/s), 380MiB/s-380MiB/s (398MB/s-398MB/s), io=22.3GiB (23.9GB), run=60007-60007msec
+   READ: bw=408MiB/s (428MB/s), 408MiB/s-408MiB/s (428MB/s-428MB/s), io=23.9GiB (25.7GB), run=60040-60040msec
+   READ: bw=397MiB/s (416MB/s), 397MiB/s-397MiB/s (416MB/s-416MB/s), io=23.2GiB (25.0GB), run=60001-60001msec
+--- Running theta=1.5, pratio=0 ---
+   READ: bw=5322MiB/s (5580MB/s), 5322MiB/s-5322MiB/s (5580MB/s-5580MB/s), io=312GiB (335GB), run=60002-60002msec
+   READ: bw=5721MiB/s (5999MB/s), 5721MiB/s-5721MiB/s (5999MB/s-5999MB/s), io=335GiB (360GB), run=60002-60002msec
+   READ: bw=5878MiB/s (6164MB/s), 5878MiB/s-5878MiB/s (6164MB/s-6164MB/s), io=344GiB (370GB), run=60002-60002msec
+   READ: bw=5432MiB/s (5696MB/s), 5432MiB/s-5432MiB/s (5696MB/s-5696MB/s), io=318GiB (342GB), run=60001-60001msec
+--- Running theta=1.5, pratio=5 ---
+   READ: bw=5110MiB/s (5359MB/s), 5110MiB/s-5110MiB/s (5359MB/s-5359MB/s), io=299GiB (322GB), run=60002-60002msec
+   READ: bw=5873MiB/s (6159MB/s), 5873MiB/s-5873MiB/s (6159MB/s-6159MB/s), io=344GiB (370GB), run=60001-60001msec
+   READ: bw=5791MiB/s (6072MB/s), 5791MiB/s-5791MiB/s (6072MB/s-6072MB/s), io=339GiB (364GB), run=60001-60001msec
+   READ: bw=5241MiB/s (5496MB/s), 5241MiB/s-5241MiB/s (5496MB/s-5496MB/s), io=307GiB (330GB), run=60005-60005msec
+--- Running theta=1.5, pratio=20 ---
+   READ: bw=10.3GiB/s (11.0GB/s), 10.3GiB/s-10.3GiB/s (11.0GB/s-11.0GB/s), io=617GiB (663GB), run=60001-60001msec
+   READ: bw=9642MiB/s (10.1GB/s), 9642MiB/s-9642MiB/s (10.1GB/s-10.1GB/s), io=565GiB (607GB), run=60006-60006msec
+   READ: bw=10.7GiB/s (11.5GB/s), 10.7GiB/s-10.7GiB/s (11.5GB/s-11.5GB/s), io=644GiB (691GB), run=60002-60002msec
+   READ: bw=9.91GiB/s (10.6GB/s), 9.91GiB/s-9.91GiB/s (10.6GB/s-10.6GB/s), io=594GiB (638GB), run=60002-60002msec
+--- Running theta=1.5, pratio=50 ---
+   READ: bw=4143MiB/s (4344MB/s), 4143MiB/s-4143MiB/s (4344MB/s-4344MB/s), io=243GiB (261GB), run=60008-60008msec
+   READ: bw=4283MiB/s (4491MB/s), 4283MiB/s-4283MiB/s (4491MB/s-4491MB/s), io=251GiB (270GB), run=60034-60034msec
+   READ: bw=4010MiB/s (4204MB/s), 4010MiB/s-4010MiB/s (4204MB/s-4204MB/s), io=235GiB (252GB), run=60022-60022msec
+   READ: bw=3935MiB/s (4126MB/s), 3935MiB/s-3935MiB/s (4126MB/s-4126MB/s), io=231GiB (248GB), run=60019-60019msec
+--- Running theta=1.5, pratio=70 ---
+   READ: bw=1731MiB/s (1816MB/s), 1731MiB/s-1731MiB/s (1816MB/s-1816MB/s), io=101GiB (109GB), run=60001-60001msec
+   READ: bw=1990MiB/s (2086MB/s), 1990MiB/s-1990MiB/s (2086MB/s-2086MB/s), io=117GiB (125GB), run=60004-60004msec
+   READ: bw=4069MiB/s (4267MB/s), 4069MiB/s-4069MiB/s (4267MB/s-4267MB/s), io=238GiB (256GB), run=60008-60008msec
+   READ: bw=4229MiB/s (4435MB/s), 4229MiB/s-4229MiB/s (4435MB/s-4435MB/s), io=248GiB (266GB), run=60005-60005msec
+--- Running theta=1.5, pratio=100 ---
+   READ: bw=431MiB/s (452MB/s), 431MiB/s-431MiB/s (452MB/s-452MB/s), io=25.3GiB (27.2GB), run=60063-60063msec
+   READ: bw=333MiB/s (350MB/s), 333MiB/s-333MiB/s (350MB/s-350MB/s), io=19.5GiB (21.0GB), run=60005-60005msec
+   READ: bw=2017MiB/s (2115MB/s), 2017MiB/s-2017MiB/s (2115MB/s-2115MB/s), io=118GiB (127GB), run=60046-60046msec
+   READ: bw=2182MiB/s (2288MB/s), 2182MiB/s-2182MiB/s (2288MB/s-2288MB/s), io=128GiB (137GB), run=60083-60083msec
